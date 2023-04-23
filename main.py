@@ -16,10 +16,26 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-    if message.content.startswith('!get_messages'):
+    if message.content.startswith('!summarize_from'):
+        # Parse the message link from the command
+        link = message.content.split(' ')[1]
+        message_id = int(link.split('/')[-1])
+        
+        # Retrieve the specified message
         channel = message.channel
+        msg = await channel.fetch_message(message_id)
+        
+        # Retrieve the most recent message in the channel
+        async for recent_msg in channel.history(limit=1):
+            pass
+        
+        # Count the number of messages between the two messages
+        distance = 0
+        async for past_msg in channel.history(after=msg.created_at, before=recent_msg.created_at):
+            distance += 1
+        
         conversation = ''
-        async for msg in message.channel.history(limit=25):
+        async for msg in message.channel.history(limit=distance):
             if msg.author != client.user:
                 conversation += f"{msg.author.name}: {msg.content}\n"
         
@@ -34,5 +50,27 @@ async def on_message(message):
         print(response)
         print(summary)
         await message.channel.send("Summarized conversation:\n" + summary)
+    elif message.content.startswith('!status'):
+        await message.channel.send("Online!")
+    elif message.content.startswith('!distance'):
+        # Parse the message link from the command
+        link = message.content.split(' ')[1]
+        message_id = int(link.split('/')[-1])
+        
+        # Retrieve the specified message
+        channel = message.channel
+        msg = await channel.fetch_message(message_id)
+        
+        # Retrieve the most recent message in the channel
+        async for recent_msg in channel.history(limit=1):
+            pass
+        
+        # Count the number of messages between the two messages
+        distance = 0
+        async for past_msg in channel.history(after=msg.created_at, before=recent_msg.created_at):
+            distance += 1
+        
+        # Send the distance as a reply
+        await message.reply(f'The distance between {link} and the most recent message is {distance}')
 
 client.run(os.getenv('BOTTOKEN'))
